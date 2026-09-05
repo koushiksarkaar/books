@@ -1,0 +1,6 @@
+{
+  "name": "Books Library",
+  "description": "A fully customizable Books Library app featuring JSON data, custom download popup with QR scanner payment proof, infinite scroll, profile access, and custom content customizer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
