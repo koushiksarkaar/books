@@ -1,0 +1,348 @@
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { BookService, Book, User } from './book.service';
+
+interface AppTheme {
+  name: string;
+  headerBg: string;
+  headerText: string;
+  accentColor: string;
+  fontFamily: 'sans' | 'serif' | 'mono';
+  bannerText: string;
+  bannerButtonText: string;
+  bannerVisible: boolean;
+}
+
+@Component({
+  selector: 'app-book-list',
+  templateUrl: './book-list.component.html',
+  styleUrls: ['./book-list.component.css']
+})
+export class BookListComponent implements OnInit, OnDestroy {
+  // Application lists and state
+  books: Book[] = [];
+  currentUser: User | null = null;
+  currentPage: 'login' | 'signup' | 'home' | 'admin' = 'login';
+  
+  // Custom theme system (Branding)
+  theme: AppTheme = {
+    name: 'ManyBooks Coral',
+    headerBg: 'bg-[#ff6f61]',
+    headerText: 'text-white',
+    accentColor: '#00a896',
+    fontFamily: 'sans',
+    bannerText: 'Support our mission to provide free literature!',
+    bannerButtonText: 'Donate',
+    bannerVisible: true,
+  };
+
+  // Auth inputs
+  authUsername = '';
+  authMobileNumber = '';
+  authError = '';
+  authSuccess = '';
+
+  // Filter & Search states
+  searchQuery = '';
+  selectedLanguage = 'Any';
+  sortBy: 'title' | 'author' | 'popularity' | 'rating' = 'popularity';
+  
+  popularGenres = ['Romance', 'Mystery & Thriller', 'Science Fiction', 'Biographies', 'Action & Adventure'];
+  allGenresList = [
+    'Action & Adventure', 'Adventure', 'Art', 'Biography', 'Business', 'Classic', 'Computers',
+    'Cooking', 'Drama', 'Fantasy', 'Fiction And Literature', 'Mystery & Thriller', 'Science Fiction'
+  ];
+  discoverGenres = ['Action & Adventure', "Children's", 'Fantasy', 'Horror', 'Mystery & Thriller', 'Romance', 'Science Fiction'];
+  discoverResources = ['Authors', 'Languages', 'Genres', 'Articles', 'Discuss'];
+
+  selectedGenres: string[] = [];
+  selectedRatings: number[] = [];
+
+  // Dropdown states
+  isDiscoverOpen = false;
+  isProfileOpen = false;
+  
+  // Immersive Modal detail
+  selectedBookForModal: Book | null = null;
+  hoveredBookId: string | null = null;
+
+  // Hands-Free Auto Scroll engine
+  autoScrollSpeed = 0; // 0 for off, 1-3 for speed levels
+  private autoScrollInterval: any = null;
+
+  // New book admin form
+  newBookTitle = '';
+  newBookAuthor = '';
+  newBookGenre = 'Romance';
+  newBookRating = 5;
+  newBookPopularity = 90;
+  newBookDescription = '';
+  newBookGradient = 'coral';
+
+  // Admin Dashboard views
+  activeAdminTab: 'branding' | 'books' | 'backend' = 'branding';
+
+  constructor(private bookService: BookService) {}
+
+  ngOnInit() {
+    this.loadInitialBooks();
+    this.checkLocalStorageSession();
+  }
+
+  ngOnDestroy() {
+    this.stopAutoScroll();
+  }
+
+  loadInitialBooks() {
+    this.bookService.getBooks().subscribe({
+      next: (data) => {
+        this.books = data;
+      },
+      error: () => {
+        this.books = this.getMockBooks();
+      }
+    });
+  }
+
+  checkLocalStorageSession() {
+    const savedUser = localStorage.getItem('bt_user');
+    if (savedUser) {
+      this.currentUser = JSON.parse(savedUser);
+      this.currentPage = 'home';
+    }
+  }
+
+  // --- Auth Controls ---
+  handleLogin() {
+    this.authError = '';
+    this.authSuccess = '';
+
+    if (!this.authMobileNumber.trim()) {
+      this.authError = 'Mobile number is required.';
+      return;
+    }
+
+    this.bookService.login(this.authMobileNumber).subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        localStorage.setItem('bt_user', JSON.stringify(user));
+        this.currentPage = 'home';
+        this.authSuccess = 'Welcome back!';
+      },
+      error: (err) => {
+        this.authError = err.error || 'User not found. Try John Doe (1234567890) or create account!';
+      }
+    });
+  }
+
+  handleSignup() {
+    this.authError = '';
+    this.authSuccess = '';
+
+    if (!this.authUsername.trim() || !this.authMobileNumber.trim()) {
+      this.authError = 'Username and Mobile Number are required.';
+      return;
+    }
+
+    this.bookService.signup(this.authUsername, this.authMobileNumber).subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        localStorage.setItem('bt_user', JSON.stringify(user));
+        this.currentPage = 'home';
+      },
+      error: (err) => {
+        this.authError = err.error || 'Mobile number already registered.';
+      }
+    });
+  }
+
+  handleLogout() {
+    this.currentUser = null;
+    localStorage.removeItem('bt_user');
+    this.currentPage = 'login';
+    this.isProfileOpen = false;
+  }
+
+  // --- Filter Filters Helpers ---
+  toggleGenreFilter(genre: string) {
+    const index = this.selectedGenres.indexOf(genre);
+    if (index > -1) {
+      this.selectedGenres.splice(index, 1);
+    } else {
+      this.selectedGenres.push(genre);
+    }
+  }
+
+  toggleRatingFilter(rating: number) {
+    const index = this.selectedRatings.indexOf(rating);
+    if (index > -1) {
+      this.selectedRatings.splice(index, 1);
+    } else {
+      this.selectedRatings.push(rating);
+    }
+  }
+
+  resetFilters() {
+    this.selectedGenres = [];
+    this.selectedRatings = [];
+    this.selectedLanguage = 'Any';
+    this.searchQuery = '';
+    this.sortBy = 'popularity';
+  }
+
+  getFilteredBooks(): Book[] {
+    return this.books.filter(book => {
+      const q = this.searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || 
+        book.title.toLowerCase().includes(q) || 
+        book.author.toLowerCase().includes(q) || 
+        book.genre.toLowerCase().includes(q);
+
+      const matchesGenre = this.selectedGenres.length === 0 || this.selectedGenres.includes(book.genre);
+      const matchesRating = this.selectedRatings.length === 0 || this.selectedRatings.includes(book.rating);
+      const matchesLanguage = this.selectedLanguage === 'Any' || book.language === this.selectedLanguage;
+
+      return matchesSearch && matchesGenre && matchesRating && matchesLanguage;
+    }).sort((a, b) => {
+      if (this.sortBy === 'title') return a.title.localeCompare(b.title);
+      if (this.sortBy === 'author') return a.author.localeCompare(b.author);
+      if (this.sortBy === 'rating') return b.rating - a.rating;
+      return b.popularity - a.popularity;
+    });
+  }
+
+  // --- Smooth Scrolling ---
+  setScrollSpeed(speed: number) {
+    this.autoScrollSpeed = speed;
+    this.stopAutoScroll();
+
+    if (speed > 0) {
+      this.autoScrollInterval = setInterval(() => {
+        window.scrollBy({ top: speed, behavior: 'smooth' });
+        
+        // Loop back up if we hit page bottom
+        if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5) {
+          window.scrollTo({ top: 300, behavior: 'instant' });
+        }
+      }, 45);
+    }
+  }
+
+  stopAutoScroll() {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+      this.autoScrollInterval = null;
+    }
+  }
+
+  // --- Real PDF Download Trigger ---
+  triggerPdfDownload(book: Book, e?: Event) {
+    if (e) e.stopPropagation();
+    
+    book.downloadCount++;
+    this.bookService.updateBook(book.id!, { downloadCount: book.downloadCount }).subscribe();
+
+    const formattedTitle = book.title.replace(/[\\()]/g, '');
+    const formattedAuthor = book.author.replace(/[\\()]/g, '');
+    const ts = new Date().toLocaleString();
+
+    const pdfContent = [
+      '%PDF-1.4',
+      '1 0 obj', '<< /Type /Catalog /Pages 2 0 R >>', 'endobj',
+      '2 0 obj', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', 'endobj',
+      '3 0 obj', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>', 'endobj',
+      '4 0 obj', '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', 'endobj',
+      '5 0 obj',
+      '<< /Length 500 >>',
+      'stream',
+      'BT', '/F1 22 Tf', '72 750 Td', `(${formattedTitle}) Tj`, 'ET',
+      'BT', '/F1 14 Tf', '72 710 Td', `(by ${formattedAuthor}) Tj`, 'ET',
+      'BT', '/F1 11 Tf', '72 650 Td', `(Downloaded from optimized Angular + .NET eBook application!) Tj`, 'ET',
+      'BT', '/F1 11 Tf', '72 620 Td', `(Time code: ${ts}) Tj`, 'ET',
+      'ET',
+      'endstream', 'endobj',
+      'xref', '0 6', '0000000000 65535 f', 'trailer', '<< /Size 6 /Root 1 0 R >>', 'startxref', '380', '%%EOF'
+    ].join('\n');
+
+    const blob = new Blob([new TextEncoder().encode(pdfContent)], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${book.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // --- CRUD Inventory Operations ---
+  handleAddBook() {
+    if (!this.newBookTitle.trim() || !this.newBookAuthor.trim()) {
+      alert('Book title and author are required.');
+      return;
+    }
+
+    const gradients: Record<string, string> = {
+      coral: 'linear-gradient(135deg, #df8d71 0%, #aa4b3b 100%)',
+      charcoal: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+      golden: 'linear-gradient(135deg, #b45309 0%, #78350f 100%)',
+      rose: 'linear-gradient(135deg, #fda4af 0%, #e11d48 100%)',
+      teal: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)'
+    };
+
+    const newBook: Book = {
+      title: this.newBookTitle.trim(),
+      author: this.newBookAuthor.trim(),
+      genre: this.newBookGenre,
+      rating: this.newBookRating,
+      popularity: this.newBookPopularity,
+      coverUrl: gradients[this.newBookGradient] || gradients.coral,
+      language: 'English',
+      description: this.newBookDescription.trim(),
+      downloadCount: 0
+    };
+
+    this.bookService.addBook(newBook).subscribe({
+      next: (b) => {
+        this.books.unshift(b);
+        this.newBookTitle = '';
+        this.newBookAuthor = '';
+        this.newBookDescription = '';
+        alert('Book added successfully inside .NET Connected Library database!');
+      },
+      error: () => {
+        newBook.id = Date.now().toString();
+        this.books.unshift(newBook);
+        this.newBookTitle = '';
+        this.newBookAuthor = '';
+        this.newBookDescription = '';
+      }
+    });
+  }
+
+  deleteBook(bookId: string) {
+    if (confirm('Delete this book permanently from catalog?')) {
+      this.bookService.deleteBook(bookId).subscribe({
+        next: () => {
+          this.books = this.books.filter(b => b.id !== bookId);
+        },
+        error: () => {
+          this.books = this.books.filter(b => b.id !== bookId);
+        }
+      });
+    }
+  }
+
+  // Preset Theme selector
+  applyThemePreset(name: string, bg: string, accent: string) {
+    this.theme.name = name;
+    this.theme.headerBg = bg;
+    this.theme.accentColor = accent;
+  }
+
+  private getMockBooks(): Book[] {
+    return [
+      { id: '1', title: 'A Convenient Risk', author: 'Sara R Turnquist', coverUrl: 'linear-gradient(135deg, #df8d71 0%, #aa4b3b 100%)', rating: 5, language: 'English', genre: 'Romance', popularity: 98, description: 'Victorian love and dramatic choices.', downloadCount: 1420 },
+      { id: '2', title: 'War Of The Animals', author: 'Jonathan Decoteau', coverUrl: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', rating: 4, language: 'English', genre: 'Science Fiction', popularity: 89, description: 'Dark and gripping post-apocalyptic saga.', downloadCount: 1105 },
+      { id: '3', title: 'Dirt Dealers', author: 'A.W. Kaylen', coverUrl: 'linear-gradient(135deg, #b45309 0%, #78350f 100%)', rating: 4, language: 'English', genre: 'Mystery & Thriller', popularity: 95, description: 'High-stakes FBI investigation.', downloadCount: 890 },
+      { id: '4', title: 'Lost to You', author: 'A.L. Jackson', coverUrl: 'linear-gradient(135deg, #fda4af 0%, #e11d48 100%)', rating: 5, language: 'English', genre: 'Romance', popularity: 92, description: 'Memories, romance and second chances.', downloadCount: 2310 }
+    ];
+  }
+}

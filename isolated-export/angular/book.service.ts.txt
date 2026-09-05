@@ -1,0 +1,60 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface Book {
+  id?: string;
+  title: string;
+  author: string;
+  coverUrl: string;
+  rating: number;
+  language: string;
+  genre: string;
+  popularity: number;
+  description?: string;
+  downloadCount: number;
+}
+
+export interface User {
+  username: string;
+  mobileNumber: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class BookService {
+  private apiUrl = 'http://localhost:3000/api'; // Swap with your deployed .NET Core WebAPI URL
+
+  constructor(private http: HttpClient) {}
+
+  // 1. Book Records API endpoints
+  getBooks(): Observable<Book[]> {
+    return this.http.get<Book[]>(this.apiUrl + '/books');
+  }
+
+  getBook(id: string): Observable<Book> {
+    return this.http.get<Book>(this.apiUrl + '/books/' + id);
+  }
+
+  addBook(book: Book): Observable<Book> {
+    return this.http.post<Book>(this.apiUrl + '/books', book);
+  }
+
+  updateBook(id: string, book: Partial<Book>): Observable<any> {
+    return this.http.put(this.apiUrl + '/books/' + id, book);
+  }
+
+  deleteBook(id: string): Observable<any> {
+    return this.http.delete(this.apiUrl + '/books/' + id);
+  }
+
+  // 2. Auth API endpoints
+  login(mobileNumber: string): Observable<User> {
+    return this.http.post<User>(this.apiUrl + '/auth/login', { mobileNumber });
+  }
+
+  signup(username: string, mobileNumber: string): Observable<User> {
+    return this.http.post<User>(this.apiUrl + '/auth/signup', { username, mobileNumber });
+  }
+}
