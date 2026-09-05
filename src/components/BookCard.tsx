@@ -4,6 +4,82 @@ import { useApp } from '../context/AppContext';
 import { downloadBookPdf } from '../services/pdfGenerator';
 import { Star, Download, BookOpen, CheckCircle, ShieldCheck, QrCode, Clipboard, AlertCircle, X, Heart, ArrowLeft, Share2, Twitter, Bookmark } from 'lucide-react';
 
+export const getGoogleDriveDirectLink = (url: string, isImage = false): string => {
+  if (!url) return '';
+  if (url.includes('drive.google.com')) {
+    let fileId = '';
+    const fileDMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (fileDMatch && fileDMatch[1]) {
+      fileId = fileDMatch[1];
+    } else {
+      const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        fileId = idMatch[1];
+      }
+    }
+    if (fileId) {
+      if (isImage) {
+        return `https://lh3.googleusercontent.com/d/${fileId}`;
+      } else {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+      }
+    }
+  }
+  return url;
+};
+
+export const getBookCoverUrl = (book: Book): string => {
+  if (!book) return '';
+  if (book.image && (book.image.startsWith('http://') || book.image.startsWith('https://') || book.image.startsWith('/') || book.image.startsWith('data:'))) {
+    return getGoogleDriveDirectLink(book.image, true);
+  }
+  if (book.coverUrl && (book.coverUrl.startsWith('http://') || book.coverUrl.startsWith('https://'))) {
+    return getGoogleDriveDirectLink(book.coverUrl, true);
+  }
+
+  const titleLower = book.title ? book.title.toLowerCase() : '';
+  
+  if (titleLower.includes('convenient risk')) {
+    return 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('war of the animals')) {
+    return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('dirt dealers')) {
+    return 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('lost to you')) {
+    return 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('legend is born')) {
+    return 'https://images.unsplash.com/photo-1519074069444-1ba4e6664104?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('whiskey witches')) {
+    return 'https://images.unsplash.com/photo-1514894780887-121968d00567?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('petite confessions')) {
+    return 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('when we let go')) {
+    return 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('red badge of courage') || titleLower.includes('red badge')) {
+    return 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('drive')) {
+    return 'https://images.unsplash.com/photo-1506015391300-4802dc74de2e?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('tender echoes')) {
+    return 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80';
+  }
+  if (titleLower.includes('academic curveball')) {
+    return 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80';
+  }
+
+  // Fallback beautiful book template
+  return 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80';
+};
+
 interface BookCardProps {
   book: Book;
 }
@@ -63,8 +139,19 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       setIsVerifying(false);
       setVerificationSuccess(true);
       
-      // Trigger the standard browser PDF generation and download
-      downloadBookPdf(book.title, book.author);
+      // Trigger the download of a real file if available, or generate a client-side mock PDF
+      if (book.downloadUrl && !book.downloadUrl.startsWith('https://books-library-download')) {
+        const directUrl = getGoogleDriveDirectLink(book.downloadUrl, false);
+        const link = document.createElement('a');
+        link.href = directUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        downloadBookPdf(book.title, book.author);
+      }
 
       // Increment local download count state
       updateBook(book.id, { downloadCount: book.downloadCount + 1 });
@@ -91,32 +178,47 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* 1. Book Cover representation with custom gradient */}
+      {/* 1. Book Cover representation with custom cover image & gradient fallback */}
       <div
         id={`book-cover-container-${book.id}`}
-        className="w-full aspect-[2/3] rounded-lg shadow-md hover:shadow-xl overflow-hidden transition-all duration-300 cursor-pointer relative bg-slate-900 border border-slate-200/40 select-none"
+        className="w-full aspect-[2/3] rounded-lg shadow-md hover:shadow-xl overflow-hidden transition-all duration-300 cursor-pointer relative bg-slate-900 border border-slate-200/40 select-none group"
         onClick={() => setShowDetailDialog(true)}
       >
-        {/* Book cover visual content: gradient background with styled book title */}
-        <div
-          className="w-full h-full flex flex-col justify-between p-4 text-white relative"
+        {/* Base color gradient as backup */}
+        <div 
+          className="absolute inset-0 z-0" 
           style={{ background: book.coverUrl }}
-        >
+        />
+
+        {/* Real Cover Image populated dynamically */}
+        <img 
+          src={getBookCoverUrl(book)} 
+          alt={book.title} 
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 z-10"
+          referrerPolicy="no-referrer"
+          loading="lazy"
+        />
+
+        {/* Darkening gradient overlays for extreme contrast and premium visual depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/80 z-20" />
+
+        {/* Book cover visual content (floating on top of cover image) */}
+        <div className="absolute inset-0 w-full h-full flex flex-col justify-between p-4 text-white z-30">
           {/* Cover Header */}
-          <div className="flex justify-between items-center gap-1 z-30 relative">
-            <span className="text-[9px] uppercase tracking-wider bg-black/50 backdrop-blur-xs py-1 px-2 rounded-full font-bold">
+          <div className="flex justify-between items-center gap-1">
+            <span className="text-[9px] uppercase tracking-wider bg-black/60 backdrop-blur-md py-1 px-2 rounded-full font-bold">
               {book.genre}
             </span>
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono text-white/90 font-bold bg-emerald-600/80 px-1.5 py-0.5 rounded shadow-sm">
+              <span className="text-[10px] font-mono text-white/90 font-bold bg-[#1e9c45] px-1.5 py-0.5 rounded shadow-sm">
                 र {book.price !== undefined ? book.price : 9}
               </span>
               <button
                 onClick={handleToggleFavorite}
                 className={`p-1.5 rounded-full transition-all duration-200 cursor-pointer shadow-sm ${
                   isFavorited 
-                    ? 'bg-rose-500 text-white hover:bg-rose-600 scale-105' 
-                    : 'bg-black/40 hover:bg-black/60 text-white hover:scale-105'
+                    ? 'bg-[#1e9c45] text-white hover:bg-emerald-600 scale-105' 
+                    : 'bg-black/50 hover:bg-black/70 text-white hover:scale-105'
                 }`}
                 title={isFavorited ? 'Remove from bookshelf' : 'Add to bookshelf'}
                 id={`btn-fav-cover-${book.id}`}
@@ -128,7 +230,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 className={`p-1.5 rounded-full transition-all duration-200 cursor-pointer shadow-sm ${
                   isWishlisted 
                     ? 'bg-amber-500 text-white hover:bg-amber-600 scale-105' 
-                    : 'bg-black/40 hover:bg-black/60 text-white hover:scale-105'
+                    : 'bg-black/50 hover:bg-black/70 text-white hover:scale-105'
                 }`}
                 title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                 id={`btn-wish-cover-${book.id}`}
@@ -138,13 +240,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             </div>
           </div>
 
-          {/* Cover Decorative center SVG */}
-          <div className="my-auto flex flex-col items-center justify-center opacity-65 group-hover:opacity-90 transition-all duration-300">
-            <BookOpen className="w-12 h-12 stroke-[1.2] drop-shadow-md transform group-hover:rotate-6 transition-transform" />
-          </div>
-
-          {/* Cover Footer text */}
-          <div className="space-y-1 bg-black/20 p-2 rounded-md backdrop-blur-xs">
+          {/* Subtly transparent cover title and author plaque at the bottom of cover */}
+          <div className="space-y-1 bg-black/30 p-2 rounded-lg backdrop-blur-sm border border-white/5">
             <h4 className="font-serif font-black text-sm leading-tight line-clamp-2 drop-shadow-md text-left">
               {book.title}
             </h4>
@@ -191,7 +288,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
                     ({book.downloadCount})
                   </span>
                 </div>
-                <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 font-mono">
+                <span className="text-[10px] font-extrabold text-[#1e9c45] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100/40 font-mono">
                   र {book.price !== undefined ? book.price : 9}
                 </span>
               </div>
@@ -294,7 +391,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded leading-none font-mono tracking-tight border ${
             isDarkMode 
               ? 'text-teal-400 bg-teal-950/40 border-teal-900/50' 
-              : 'text-rose-600 bg-rose-50 border-rose-100/50'
+              : 'text-[#1e9c45] bg-emerald-50 border-emerald-100/40'
           }`}>
             र {book.price !== undefined ? book.price : 9}
           </span>
@@ -312,13 +409,25 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
               style={{ background: 'linear-gradient(to bottom, #f8fafc, #f1f5f9)' }}
             >
               <div 
-                className="w-36 aspect-[2/3] rounded-lg shadow-lg overflow-hidden text-white flex flex-col justify-between p-3"
-                style={{ background: book.coverUrl }}
+                className="w-36 aspect-[2/3] rounded-lg shadow-lg overflow-hidden text-white flex flex-col justify-between p-3 relative group animate-fade-in"
               >
-                <span className="text-[8px] bg-black/25 px-2 py-0.5 rounded-full font-bold self-start">{book.genre}</span>
-                <BookOpen className="w-10 h-10 stroke-[1.2] opacity-70 mx-auto" />
-                <div className="bg-black/25 p-1 rounded-sm text-center">
-                  <h4 className="font-serif font-black text-xs leading-none">{book.title}</h4>
+                {/* Fallback color backdrop */}
+                <div className="absolute inset-0 z-0" style={{ background: book.coverUrl }} />
+                
+                {/* Real Image */}
+                <img 
+                  src={getBookCoverUrl(book)} 
+                  alt={book.title} 
+                  className="absolute inset-0 w-full h-full object-cover z-10"
+                  referrerPolicy="no-referrer"
+                />
+
+                {/* Cover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/75 z-20" />
+
+                <span className="text-[8px] bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full font-bold self-start z-30 relative">{book.genre}</span>
+                <div className="bg-black/30 backdrop-blur-xs p-1.5 rounded text-center z-30 relative">
+                  <h4 className="font-serif font-black text-[11px] leading-tight">{book.title}</h4>
                 </div>
               </div>
               <span className="text-[10px] text-slate-400 font-bold mt-4 bg-slate-100 py-1 px-2.5 rounded-full">
@@ -448,8 +557,18 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       {/* NEW POPUP: Scan QR to Download the Book PDF */}
       {showQrModal && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-55 animate-fade-in text-slate-800">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative border border-slate-100 text-center flex flex-col gap-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative border border-slate-100 text-center flex flex-col gap-4 max-h-[92vh] overflow-y-auto">
             
+            {/* Prominent Back Button on Top-Left */}
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-3 left-3 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 cursor-pointer transition-all duration-200 shadow-xs hover:scale-105 z-50 flex items-center justify-center"
+              title="Back to Details"
+              id="top-left-back-qr-btn"
+            >
+              <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+            </button>
+
             {/* Highly Prominent Close Button on Top-Right */}
             <button
               onClick={() => setShowQrModal(false)}
@@ -478,11 +597,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 <div className="flex justify-between">
                   <span className="text-slate-400 font-medium">Purchase Price:</span>
                   <span className="text-teal-600 font-extrabold">र {book.price !== undefined ? book.price : 9}</span>
-                </div>
-                <span className="h-px bg-slate-200/50 my-1"></span>
-                <div className="flex justify-between leading-tight items-start">
-                  <span className="text-slate-400 font-medium">Verify URL:</span>
-                  <span className="font-mono text-[10px] text-emerald-600 break-all text-right w-[180px]">{book.downloadUrl}</span>
                 </div>
               </div>
             </div>

@@ -26,7 +26,7 @@ export const Sidebar: React.FC = () => {
   return (
     <aside 
       id="library-sidebar-filters" 
-      className={`w-full lg:w-64 shrink-0 p-5 rounded-xl border transition-all duration-300 space-y-6 ${
+      className={`w-full md:w-64 shrink-0 p-5 rounded-xl border transition-all duration-300 space-y-6 ${
         isDarkMode 
           ? 'bg-slate-800 border-slate-700/80 text-slate-100 shadow-md' 
           : 'bg-white border-slate-200/60 shadow-xs'

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Book, AppTheme } from '../types';
 import { ALL_GENRES_LIST } from '../data/initialBooks';
+import { getBookCoverUrl } from './BookCard';
 import {
   DOTNET_CONTROLLER_TEMPLATE,
   DOTNET_AUTH_TEMPLATE,
@@ -60,6 +61,7 @@ export const AdminDashboard: React.FC = () => {
   const [rating, setRating] = useState(5);
   const [popularity, setPopularity] = useState(90);
   const [coverGradientType, setCoverGradientType] = useState('coral');
+  const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
 
   // Preset Colors/Gradients to assign to covers
@@ -136,6 +138,7 @@ export const AdminDashboard: React.FC = () => {
         rating,
         popularity,
         coverUrl,
+        image: image.trim() || undefined,
         description: description.trim()
       });
       setIsEditing(false);
@@ -148,6 +151,7 @@ export const AdminDashboard: React.FC = () => {
         rating,
         popularity,
         coverUrl,
+        image: image.trim() || undefined,
         language: 'English',
         description: description.trim()
       });
@@ -160,6 +164,7 @@ export const AdminDashboard: React.FC = () => {
     setRating(5);
     setPopularity(90);
     setDescription('');
+    setImage('');
   };
 
   const startEditBook = (book: Book) => {
@@ -169,6 +174,7 @@ export const AdminDashboard: React.FC = () => {
     setRating(book.rating);
     setPopularity(book.popularity);
     setDescription(book.description || '');
+    setImage(book.image || '');
     
     // Find gradient key
     const foundKey = Object.keys(GRADIENT_PRESETS).find(key => GRADIENT_PRESETS[key] === book.coverUrl) || 'coral';
@@ -184,7 +190,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Dashboard Brand Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2 text-rose-500 font-extrabold text-xs uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-[#1e9c45] font-extrabold text-xs uppercase tracking-widest">
             <Settings className="w-4 h-4 animate-spin-slow" />
             <span>Editable Controls Portal</span>
           </div>
@@ -233,7 +239,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
-            <Paintbrush className="w-4 h-4 text-rose-500" />
+            <Paintbrush className="w-4 h-4 text-[#1e9c45]" />
             Themes, Colors & Fonts
           </button>
 
@@ -497,6 +503,17 @@ export const AdminDashboard: React.FC = () => {
                     </select>
                   </div>
 
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Custom Cover Image URL (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. https://images.unsplash.com/..."
+                      value={image}
+                      onChange={(e) => setImage(e.target.value)}
+                      className="w-full bg-white border border-slate-200 py-2 px-3 rounded-lg text-xs font-medium focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+
                   <div className="space-y-1 md:col-span-2">
                     <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Description / Plot Summary</label>
                     <textarea
@@ -519,6 +536,7 @@ export const AdminDashboard: React.FC = () => {
                         setTitle('');
                         setAuthor('');
                         setDescription('');
+                        setImage('');
                       }}
                       className="py-2 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-lg transition-colors animate-fade-in"
                     >
@@ -556,7 +574,9 @@ export const AdminDashboard: React.FC = () => {
                       {books.map((b) => (
                         <tr key={b.id} className="hover:bg-slate-50/50">
                           <td className="p-3">
-                            <div className="w-8 aspect-[2/3] rounded shadow-xs" style={{ background: b.coverUrl }}></div>
+                            <div className="w-8 aspect-[2/3] rounded shadow-xs overflow-hidden relative" style={{ background: b.coverUrl }}>
+                              <img src={getBookCoverUrl(b)} alt={b.title} className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            </div>
                           </td>
                           <td className="p-3">
                             <div className="font-bold text-slate-800">{b.title}</div>

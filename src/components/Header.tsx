@@ -211,7 +211,7 @@ export const Header: React.FC = () => {
                   }}
                   className="flex items-center gap-2 px-3.5 py-2 rounded-md hover:bg-white/10 transition-all text-sm font-semibold border border-white/15 bg-white/5"
                 >
-                  <div className="w-6 h-6 rounded-full bg-white text-rose-500 font-extrabold text-[11px] flex items-center justify-center shadow-inner">
+                  <div className="w-6 h-6 rounded-full bg-white text-[#1e9c45] font-extrabold text-[11px] flex items-center justify-center shadow-inner">
                     {currentUser.username.charAt(0).toUpperCase()}
                   </div>
                   <span className="max-w-[80px] sm:max-w-none truncate text-white">{currentUser.username}</span>
@@ -229,7 +229,7 @@ export const Header: React.FC = () => {
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-bold text-sm text-slate-800 truncate">{currentUser.username}</span>
-                        <span className="text-xs text-rose-500 font-medium uppercase tracking-wide">Registered Member</span>
+                        <span className="text-xs text-[#1e9c45] font-medium uppercase tracking-wide">Registered Member</span>
                       </div>
                     </div>
 
@@ -277,7 +277,7 @@ export const Header: React.FC = () => {
           ) : (
             <button
               onClick={() => setCurrentPage('login')}
-              className="py-2 px-5 bg-white text-rose-500 font-bold text-xs rounded-md shadow-md hover:brightness-105 active:scale-95 transition-all uppercase tracking-wider cursor-pointer"
+              className="py-2 px-5 bg-white text-[#1e9c45] font-bold text-xs rounded-md shadow-md hover:brightness-105 active:scale-95 transition-all uppercase tracking-wider cursor-pointer"
             >
               Sign In
             </button>

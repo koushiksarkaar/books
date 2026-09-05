@@ -3,6 +3,7 @@ export interface Book {
   title: string;
   author: string;
   coverUrl: string;
+  image?: string;
   rating: number; // 1 to 5
   language: string; // e.g., "English"
   genre: string; // e.g., "Romance", "Mystery & Thriller", "Science Fiction"

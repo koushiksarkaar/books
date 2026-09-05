@@ -94,6 +94,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       parsed = defaultTheme;
       localStorage.setItem('bt_theme', JSON.stringify(defaultTheme));
     }
+    // Dynamic migration for red/coral background & accent colors to the new green (#1e9c45)
+    if (parsed) {
+      let changed = false;
+      if (parsed.headerBg === 'bg-[#ff6f61]' || parsed.headerBg === 'bg-rose-500' || parsed.headerBg === 'bg-red-500' || parsed.headerBg === 'bg-rose-600') {
+        parsed.headerBg = 'bg-[#1e9c45]';
+        changed = true;
+      }
+      if (parsed.accentColor === '#ff6f61' || parsed.accentColor === '#f87171' || parsed.accentColor === '#e11d48' || parsed.accentColor === '#ff5a5f' || parsed.accentColor === '#f43f5e' || parsed.accentColor === '#ef4444') {
+        parsed.accentColor = '#1e9c45';
+        changed = true;
+      }
+      if (parsed.name && parsed.name.toLowerCase().includes('coral')) {
+        parsed.name = parsed.name.replace(/coral/gi, 'Green');
+        changed = true;
+      }
+      if (changed) {
+        localStorage.setItem('bt_theme', JSON.stringify(parsed));
+      }
+    }
     if (parsed && parsed.bannerText && parsed.bannerText.includes('Support our mission')) {
       parsed.bannerText = 'Welcome to Books Library! Read and download free interactive books.';
     }

@@ -34,7 +34,7 @@ export const GenreBar: React.FC = () => {
                 onClick={() => toggleGenreFilter(genre)}
                 className={`py-1 px-3 rounded-full text-xs transition-all duration-200 cursor-pointer ${
                   isSelected
-                    ? 'bg-rose-500 text-white font-bold shadow-xs scale-105'
+                    ? 'bg-[#1e9c45] text-white font-bold shadow-xs scale-105'
                     : (isDarkMode 
                         ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700' 
                         : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/50')
@@ -55,7 +55,7 @@ export const GenreBar: React.FC = () => {
                 if (selectedGenres.includes(g)) toggleGenreFilter(g);
               });
             }}
-            className="text-[11px] text-rose-500 hover:underline font-bold ml-auto cursor-pointer"
+            className="text-[11px] text-[#1e9c45] hover:underline font-bold ml-auto cursor-pointer"
           >
             Clear Selected
           </button>

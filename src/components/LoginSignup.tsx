@@ -65,12 +65,12 @@ export const LoginSignup: React.FC = () => {
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200/50 flex flex-col relative z-10">
         
         {/* Decorative Top header block with brand accent */}
-        <div className="bg-[#ff6f61] p-8 text-white text-center relative overflow-hidden">
+        <div className="bg-[#1e9c45] p-8 text-white text-center relative overflow-hidden">
           {/* Subtle grid pattern or shapes in background */}
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
           
           <div className="relative z-10 space-y-2">
-            <div className="w-12 h-12 bg-white rounded-xl mx-auto flex items-center justify-center text-[#ff6f61] font-black text-2xl shadow-md">
+            <div className="w-12 h-12 bg-white rounded-xl mx-auto flex items-center justify-center text-[#1e9c45] font-black text-2xl shadow-md">
               B
             </div>
             <h2 className="text-2xl font-sans font-black tracking-tighter">Books Library</h2>

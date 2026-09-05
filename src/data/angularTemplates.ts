@@ -86,8 +86,8 @@ export class BookListComponent implements OnInit, OnDestroy {
   
   // Custom theme system (Branding)
   theme: AppTheme = {
-    name: 'ManyBooks Coral',
-    headerBg: 'bg-[#ff6f61]',
+    name: 'ManyBooks Green',
+    headerBg: 'bg-[#1e9c45]',
     headerText: 'text-white',
     accentColor: '#00a896',
     fontFamily: 'sans',
@@ -436,7 +436,7 @@ export const ANGULAR_COMPONENT_HTML_TEMPLATE = `<!-- Global Support Top Promo Ba
     <!-- Left Navigation -->
     <div class="flex items-center justify-between md:justify-start gap-6">
       <div (click)="currentPage = 'home'" class="flex items-center gap-2 cursor-pointer group">
-        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-[#ff6f61] font-extrabold text-2xl shadow-md">M</div>
+        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-[#1e9c45] font-extrabold text-2xl shadow-md">M</div>
         <div class="flex flex-col text-left">
           <span class="font-sans font-black text-2xl tracking-tighter leading-none">ManyBooks</span>
           <span class="text-[10px] tracking-widest text-white/70 uppercase font-mono">Angular Edition</span>
@@ -521,8 +521,8 @@ export const ANGULAR_COMPONENT_HTML_TEMPLATE = `<!-- Global Support Top Promo Ba
 <!-- Login / Registration Form -->
 <div *ngIf="currentPage === 'login' || currentPage === 'signup'" class="min-h-[80vh] flex items-center justify-center p-6 bg-slate-50 text-slate-800">
   <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
-    <div class="bg-[#ff6f61] p-8 text-white text-center">
-      <div class="w-12 h-12 bg-white rounded-xl mx-auto flex items-center justify-center text-[#ff6f61] font-black text-2xl shadow-md mb-2">M</div>
+    <div class="bg-[#1e9c45] p-8 text-white text-center">
+      <div class="w-12 h-12 bg-white rounded-xl mx-auto flex items-center justify-center text-[#1e9c45] font-black text-2xl shadow-md mb-2">M</div>
       <h2 class="text-2xl font-sans font-black tracking-tight">ManyBooks Library</h2>
       <p class="text-white/80 text-xs">Access your beautiful dynamic customized eBook list database portal.</p>
     </div>
@@ -715,9 +715,9 @@ export const ANGULAR_COMPONENT_HTML_TEMPLATE = `<!-- Global Support Top Promo Ba
       <div *ngIf="activeAdminTab === 'branding'" class="space-y-6">
         <h3 class="text-base font-bold">Custom Themes & Header Accents</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <button (click)="applyThemePreset('ManyBooks Coral', 'bg-[#ff6f61]', '#00a896')" class="p-3 border border-slate-200 rounded text-left text-xs bg-slate-50 hover:bg-slate-100">
-            <span class="block font-bold">ManyBooks Coral</span>
-            <div class="flex gap-1.5 mt-1.5"><span class="w-4 h-4 rounded bg-[#ff6f61]"></span><span class="w-4 h-4 rounded bg-[#00a896]"></span></div>
+          <button (click)="applyThemePreset('ManyBooks Green', 'bg-[#1e9c45]', '#00a896')" class="p-3 border border-slate-200 rounded text-left text-xs bg-slate-50 hover:bg-slate-100">
+            <span class="block font-bold">ManyBooks Green</span>
+            <div class="flex gap-1.5 mt-1.5"><span class="w-4 h-4 rounded bg-[#1e9c45]"></span><span class="w-4 h-4 rounded bg-[#00a896]"></span></div>
           </button>
           <button (click)="applyThemePreset('Forest Moss', 'bg-emerald-800', '#10b981')" class="p-3 border border-slate-200 rounded text-left text-xs bg-slate-50 hover:bg-slate-100">
             <span class="block font-bold">Forest Moss</span>
@@ -763,7 +763,7 @@ export const ANGULAR_COMPONENT_HTML_TEMPLATE = `<!-- Global Support Top Promo Ba
           <div class="space-y-1">
             <label class="text-[11px] font-bold text-slate-500">Gradient Palette</label>
             <select [(ngModel)]="newBookGradient" class="w-full border p-2 text-xs rounded">
-              <option value="coral">ManyBooks Coral</option>
+              <option value="coral">ManyBooks Green</option>
               <option value="charcoal">Charcoal Slate</option>
               <option value="golden">Ochre Golden</option>
               <option value="rose">Soft Rose</option>

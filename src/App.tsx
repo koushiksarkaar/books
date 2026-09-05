@@ -211,7 +211,7 @@ function LibraryAppContent() {
           <GenreBar />
 
           {/* Main Container Core */}
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
             
             {/* Left Column Sidebar Filters */}
             <Sidebar />
